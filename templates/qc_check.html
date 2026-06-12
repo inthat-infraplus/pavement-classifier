@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h2>Task #{{ task.id }} QC Check</h2>
+    <a href="/l1_dashboard" class="btn btn-secondary">Back to Dashboard</a>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px;">
+    {% for img in images %}
+    <div class="card text-center" style="padding: 10px; margin-bottom: 0;">
+        <img src="/api/images/serve/{{ img.id }}" alt="Image" style="width: 100%; height: 200px; object-fit: cover; border-radius: 4px; margin-bottom: 10px;">
+        <div style="font-size: 0.9em; color: #666; margin-bottom: 10px; word-break: break-all;">{{ img.filename }}</div>
+        
+        <div style="margin-bottom: 10px;">
+            <strong>Label: </strong> 
+            {% if img.label == 'pavement' %}
+                <span style="color: blue; font-weight: bold;">Pavement</span>
+            {% elif img.label == 'normal' %}
+                <span style="color: gray; font-weight: bold;">Normal</span>
+            {% else %}
+                <span style="color: orange;">Unclassified</span>
+            {% endif %}
+        </div>
+        
+        <form action="/api/images/{{ img.id }}/qc_update" method="post" style="display: flex; gap: 5px; justify-content: center;">
+            <input type="hidden" name="label" value="pavement">
+            <button type="submit" class="btn btn-primary btn-sm" {% if img.label == 'pavement' %}disabled{% endif %}>Set Pavement</button>
+        </form>
+        <form action="/api/images/{{ img.id }}/qc_update" method="post" style="display: flex; gap: 5px; justify-content: center; margin-top: 5px;">
+            <input type="hidden" name="label" value="normal">
+            <button type="submit" class="btn btn-secondary btn-sm" {% if img.label == 'normal' %}disabled{% endif %}>Set Normal</button>
+        </form>
+    </div>
+    {% else %}
+    <p>No images found in this task.</p>
+    {% endfor %}
+</div>
+{% endblock %}

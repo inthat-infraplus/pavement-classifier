@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="text-center" style="margin-bottom: 20px;">
+    <h2>Task #{{ task.id }} Classification</h2>
+    <p>Progress: {{ classified }} / {{ total }} images classified.</p>
+</div>
+
+{% if image %}
+<div class="card text-center" style="max-width: 800px; margin: 0 auto; background-color: #222; padding: 20px; border-radius: 12px;">
+    <img src="/api/images/serve/{{ image.id }}" alt="Image to classify" style="max-width: 100%; max-height: 60vh; border-radius: 8px;">
+    
+    <div style="margin-top: 30px; display: flex; justify-content: center; gap: 20px;">
+        <form action="/api/images/{{ image.id }}/classify" method="post" id="form-pavement">
+            <input type="hidden" name="label" value="pavement">
+            <button type="submit" class="btn btn-primary" style="font-size: 24px; padding: 15px 40px;">[1] Pavement</button>
+        </form>
+
+        <form action="/api/images/{{ image.id }}/classify" method="post" id="form-normal">
+            <input type="hidden" name="label" value="normal">
+            <button type="submit" class="btn btn-secondary" style="font-size: 24px; padding: 15px 40px;">[2] Normal</button>
+        </form>
+    </div>
+</div>
+
+<div class="text-center" style="margin-top: 15px; color: #666;">
+    <p>Tip: Use keyboard shortcut <strong>1</strong> for Pavement, <strong>2</strong> for Normal.</p>
+</div>
+{% else %}
+<div class="card text-center" style="padding: 50px;">
+    <h3>All images classified!</h3>
+    <p>Thank you. This task is now completed.</p>
+    <a href="/l2_dashboard" class="btn btn-success">Return to Dashboard</a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('keydown', function(event) {
+        if (event.key === '1') {
+            document.getElementById('form-pavement')?.submit();
+        } else if (event.key === '2') {
+            document.getElementById('form-normal')?.submit();
+        }
+    });
+</script>
+{% endblock %}

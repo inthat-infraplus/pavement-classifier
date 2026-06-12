@@ -1,0 +1,12 @@
+version: "3.8"
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      # Mount the host directory containing images to the container
+      # e.g. - /mnt/server_images:/images
+    environment:
+      - DATABASE_URL=sqlite:///./pavement.db

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>L1 Dashboard - Assigner</h2>
+
+<div style="display: flex; gap: 20px;">
+    <div class="card" style="flex: 1;">
+        <h3>Create New Task</h3>
+        <form action="/tasks" method="post">
+            <label for="folder_path">Absolute Folder Path (e.g., C:\images\batch1 or /images/batch1)</label>
+            <input type="text" id="folder_path" name="folder_path" required>
+            
+            <label for="assignee_id">Assign To (L2 User)</label>
+            <select id="assignee_id" name="assignee_id" required>
+                {% for l2 in l2_users %}
+                <option value="{{ l2.id }}">{{ l2.username }}</option>
+                {% endfor %}
+            </select>
+            
+            <button type="submit" class="btn btn-success">Create Task</button>
+        </form>
+    </div>
+
+    <div class="card" style="flex: 1;">
+        <h3>Create L2 User</h3>
+        <form action="/users/create_l2" method="post">
+            <label for="new_username">Username</label>
+            <input type="text" id="new_username" name="username" required>
+            
+            <label for="new_password">Password</label>
+            <input type="password" id="new_password" name="password" required>
+            
+            <button type="submit" class="btn btn-primary">Create User</button>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <h3>All Tasks</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Folder</th>
+                <th>Assignee</th>
+                <th>Status</th>
+                <th>Created At</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for task in tasks %}
+            <tr>
+                <td>{{ task.id }}</td>
+                <td>{{ task.folder_path }}</td>
+                <td>{{ task.assignee.username }}</td>
+                <td>
+                    {% if task.status == 'completed' %}
+                        <span style="color: green; font-weight: bold;">Completed</span>
+                    {% else %}
+                        <span style="color: orange;">Pending</span>
+                    {% endif %}
+                </td>
+                <td>{{ task.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td>
+                    <a href="/tasks/{{ task.id }}/export" class="btn btn-primary btn-sm">Export YOLO (.zip)</a>
+                    <a href="/tasks/{{ task.id }}/qc" class="btn btn-secondary btn-sm" style="margin-left: 5px;">QC Check</a>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" class="text-center">No tasks found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

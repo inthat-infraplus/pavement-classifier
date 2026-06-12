@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>L2 Dashboard - Classifier</h2>
+
+<div class="card">
+    <h3>My Assigned Tasks</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Folder</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for task in tasks %}
+            <tr>
+                <td>{{ task.id }}</td>
+                <td>{{ task.folder_path }}</td>
+                <td>
+                    {% if task.status == 'completed' %}
+                        <span style="color: green; font-weight: bold;">Completed</span>
+                    {% else %}
+                        <span style="color: orange;">Pending</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if task.status != 'completed' %}
+                        <a href="/tasks/{{ task.id }}/classify" class="btn btn-primary">Classify Images</a>
+                    {% else %}
+                        <span style="color: gray;">Done</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" class="text-center">No tasks assigned.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
