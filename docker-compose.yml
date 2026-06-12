@@ -1,4 +1,3 @@
-version: "3.8"
 services:
   web:
     build: .
@@ -6,7 +5,7 @@ services:
       - "8000:8000"
     volumes:
       - .:/app
-      # Mount the host directory containing images to the container
-      # e.g. - /mnt/server_images:/images
+      # เชื่อมโยงโฟลเดอร์หลักของคุณเข้ากับ Container ในชื่อ /images
+      - E:\S25_DRR\xeno:/images
     environment:
       - DATABASE_URL=sqlite:///./pavement.db
