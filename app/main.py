@@ -4,7 +4,7 @@ import zipfile
 import tempfile
 from pathlib import Path
 from fastapi import FastAPI, Depends, Request, Form, HTTPException, status, Response
-from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
@@ -297,3 +297,22 @@ def export_task(task_id: int, user: User = Depends(require_l1), db: Session = De
         media_type="application/zip",
         filename=f"task_{task_id}_export.zip"
     )
+
+@app.get("/tasks/{task_id}/export_txt/{label}", response_class=PlainTextResponse)
+def export_txt(task_id: int, label: str, user: User = Depends(require_l1), db: Session = Depends(get_db)):
+    if label not in ["pavement", "normal"]:
+        raise HTTPException(status_code=400, detail="Invalid label")
+        
+    task = db.query(Task).filter(Task.id == task_id).first()
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+        
+    images = db.query(Image).filter(Image.task_id == task_id, Image.label == label).all()
+    
+    content = "\n".join([img.filename for img in images])
+    
+    headers = {
+        "Content-Disposition": f"attachment; filename=\"{label}.txt\""
+    }
+    return PlainTextResponse(content=content, headers=headers)
+

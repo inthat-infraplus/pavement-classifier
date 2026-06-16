@@ -63,6 +63,7 @@
                 <td>{{ task.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
                 <td>
                     <a href="/tasks/{{ task.id }}/export" class="btn btn-primary btn-sm">Export YOLO (.zip)</a>
+                    <button onclick="downloadTxts({{ task.id }})" class="btn btn-success btn-sm" style="margin-left: 5px;">Export Texts (.txt)</button>
                     <a href="/tasks/{{ task.id }}/qc" class="btn btn-secondary btn-sm" style="margin-left: 5px;">QC Check</a>
                 </td>
             </tr>
@@ -72,4 +73,26 @@
         </tbody>
     </table>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function downloadTxts(taskId) {
+    const a1 = document.createElement('a');
+    a1.href = `/tasks/${taskId}/export_txt/pavement`;
+    a1.download = 'pavement.txt';
+    document.body.appendChild(a1);
+    a1.click();
+    document.body.removeChild(a1);
+    
+    setTimeout(() => {
+        const a2 = document.createElement('a');
+        a2.href = `/tasks/${taskId}/export_txt/normal`;
+        a2.download = 'normal.txt';
+        document.body.appendChild(a2);
+        a2.click();
+        document.body.removeChild(a2);
+    }, 500); // 500ms delay helps browsers register the second download
+}
+</script>
 {% endblock %}
