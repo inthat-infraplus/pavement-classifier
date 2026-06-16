@@ -28,6 +28,35 @@ os.makedirs("templates", exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
+# Path conversion for Windows paths to container paths
+def convert_path_to_container(folder_path: str) -> str:
+    r"""
+    Convert Windows paths to container paths.
+    Examples:
+    - E:\S25_DRR\xeno\survey_data_20250504\PAVE\20250504_1\PAVE-0 -> /xeno/survey_data_20250504/PAVE/20250504_1/PAVE-0
+    - E:/S25_DRR/xeno/... -> /xeno/...
+    """
+    # Normalize the path (handle both / and \)
+    path = folder_path.replace("\\", "/")
+    
+    # Remove drive letter if present (e.g., E:)
+    if len(path) > 2 and path[1] == ":":
+        path = path[2:]
+    
+    # Match the mounted volume: E:\S25_DRR\xeno -> /xeno
+    # Remove leading /S25_DRR/ to get /xeno/...
+    if "/S25_DRR/xeno" in path:
+        path = path.split("S25_DRR/xeno")[1]
+        if not path.startswith("/"):
+            path = "/" + path
+        return "/xeno" + path
+    elif "/xeno" in path:
+        # Path already contains /xeno
+        return path
+    
+    # If none of the above, return original (for testing or other cases)
+    return folder_path
+
 @app.get("/", response_class=HTMLResponse)
 def root(request: Request, user: User = Depends(get_current_user)):
     if not user:
@@ -94,6 +123,9 @@ def create_task(
     user: User = Depends(require_l1),
     db: Session = Depends(get_db)
 ):
+    # Convert Windows path to container path if needed
+    folder_path = convert_path_to_container(folder_path)
+    
     if not os.path.isdir(folder_path):
         # We can handle this more gracefully in UI, but this suffices
         raise HTTPException(status_code=400, detail="Invalid folder path")
@@ -175,12 +207,17 @@ def serve_image(image_id: int, user: User = Depends(require_user), db: Session =
     task = db.query(Task).filter(Task.id == image.task_id).first()
     if user.role == "L2" and task.assignee_id != user.id:
         raise HTTPException(status_code=403, detail="Not authorized")
+    
+        # Handle old /images paths -> convert to /xeno
+        folder_path = task.folder_path
+        if folder_path.startswith("/images"):
+            folder_path = folder_path.replace("/images", "/xeno", 1)
         
-    filepath = os.path.join(task.folder_path, image.filename)
-    if not os.path.exists(filepath):
-        raise HTTPException(status_code=404, detail="File not found on disk")
+        filepath = os.path.join(folder_path, image.filename)
+        if not os.path.exists(filepath):
+            raise HTTPException(status_code=404, detail="File not found on disk")
         
-    return FileResponse(filepath)
+        return FileResponse(filepath)
 
 @app.get("/tasks/{task_id}/qc", response_class=HTMLResponse)
 def qc_check_get(request: Request, task_id: int, user: User = Depends(require_l1), db: Session = Depends(get_db)):
@@ -218,7 +255,12 @@ def export_task(task_id: int, user: User = Depends(require_l1), db: Session = De
     task = db.query(Task).filter(Task.id == task_id).first()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
-        
+    
+        # Handle old /images paths -> convert to /xeno
+        folder_path = task.folder_path
+        if folder_path.startswith("/images"):
+            folder_path = folder_path.replace("/images", "/xeno", 1)
+    
     images = db.query(Image).filter(Image.task_id == task_id).all()
     
     # We will build the zip file in a temporary file and return it directly.
@@ -239,7 +281,7 @@ def export_task(task_id: int, user: User = Depends(require_l1), db: Session = De
         if not img.label:
             continue # Skip unclassified
             
-        src_path = os.path.join(task.folder_path, img.filename)
+        src_path = os.path.join(folder_path, img.filename)
         if not os.path.exists(src_path):
             continue
             

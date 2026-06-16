@@ -5,7 +5,12 @@ services:
       - "8000:8000"
     volumes:
       - .:/app
-      # เชื่อมโยงโฟลเดอร์หลักของคุณเข้ากับ Container ในชื่อ /images
-      - E:\S25_DRR\xeno:/images
+      # Mount survey data directory
+      # Windows path: E:\S25_DRR\xeno\survey_data_20250504
+      # Container path: /survey_data
+      # When assigning task, use: /survey_data/PAVE/20250504_1/PAVE-0
+      - E:\S25_DRR\xeno:/xeno
+      # Alternative: Mount the full xeno folder
+      # - E:\S25_DRR\xeno:/xeno
     environment:
       - DATABASE_URL=sqlite:///./pavement.db
